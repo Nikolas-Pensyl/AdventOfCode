@@ -1,5 +1,5 @@
 # open the sample file used 
-file = open('test.txt') 
+file = open('text.txt') 
   
 # read the content of the file opened 
 content = file.readlines() 
