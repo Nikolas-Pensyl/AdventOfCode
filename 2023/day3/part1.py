@@ -25,7 +25,6 @@ for j in range(len(content)):
         end = i
         
         Num = int(l[start:end])
-        end -=1
         
         isAdj = False
         
@@ -33,11 +32,11 @@ for j in range(len(content)):
             if start!=0:
                 if not content[j-1][start-1].isdigit() and content[j-1][start-1] != '.':
                     isAdj = True
-            for k in range(start, end+1):
+            for k in range(start, end):
                 if not content[j-1][k].isdigit() and content[j-1][k] != '.':
                     isAdj = True
-            if end+1!=len(l):
-                if not content[j-1][end+1].isdigit() and content[j-1][end+1] != '.':
+            if end!=len(l):
+                if not content[j-1][end].isdigit() and content[j-1][end] != '.':
                     isAdj = True
                         
         if j+1!=len(content):
@@ -47,12 +46,12 @@ for j in range(len(content)):
             for k in range(start, end+1):
                 if not content[j+1][k].isdigit() and content[j+1][k] != '.':
                     isAdj = True
-            if end+1!=len(l):
-                if not content[j+1][end+1].isdigit() and content[j+1][end+1] != '.':
+            if end!=len(l):
+                if not content[j+1][end].isdigit() and content[j+1][end] != '.':
                     isAdj = True
         
-        if end+1!=len(l):
-            if not content[j][end+1].isdigit() and content[j][end+1] != '.':
+        if end!=len(l):
+            if not content[j][end].isdigit() and content[j][end] != '.':
                 isAdj = True
         if start!=0:
             if not content[j][start-1].isdigit() and content[j][start-1] != '.':
