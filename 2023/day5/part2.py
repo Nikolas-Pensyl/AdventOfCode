@@ -12,7 +12,7 @@ seeds = []
 index = content[0].find(":")+1
 seedsRanges = [int(x) for x in content[0][index:len(content[0])].strip().split()]
 currentArr = [[seedsRanges[k], seedsRanges[k+1]] for k in range(0, len(seedsRanges), 2)]
-finalLocRanges = []
+
 
 
 #Get Mapping
@@ -33,7 +33,6 @@ while i<len(content):
     maps[mapIndex].append([int(x) for x in content[i].strip().split()])
     i+=1
 
-
 #Convert Seeds
 for map in maps:
     i = 0
@@ -45,29 +44,33 @@ for map in maps:
             if curr>=innerMap[1] and curr+currRange<=innerMap[1]+innerMap[2]:
                 curr = curr-innerMap[1]+innerMap[0]
                 break
-            elif curr>=innerMap[1] and curr+currRange>innerMap[1]+innerMap[2]:
-                currentArr.append([innerMap[1]+innerMap[2]+1,  currRange+curr-innerMap[1]-innerMap[2]])
+            elif curr>=innerMap[1] and curr+currRange>innerMap[1]+innerMap[2] and curr<innerMap[1]+innerMap[2]:
+                currentArr.append([innerMap[1]+innerMap[2],  currRange+curr-innerMap[1]-innerMap[2]])
                 
                 currRange = innerMap[1]+innerMap[2]-curr
                 curr = curr-innerMap[1]+innerMap[0]
                 break
-            elif curr<innerMap[1] and curr+currRange>=innerMap[1] and curr+currRange<=innerMap[1]+innerMap[2]:
-                currentArr.append([curr,  innerMap[1]-1-curr])
+            elif curr<innerMap[1] and curr+currRange>innerMap[1] and curr+currRange<=innerMap[1]+innerMap[2]:
+                currentArr.append([curr,  innerMap[1]-curr])
                 
                 currRange = curr+currRange-innerMap[1]
                 curr = innerMap[0]
                 break
             elif curr<innerMap[1] and curr+currRange>innerMap[1]+innerMap[2]:
-                currentArr.append([curr, innerMap[1]-1-curr])
-                currentArr.append([innerMap[1]+innerMap[2]+1, curr+currRange-innerMap[1]-innerMap[2]])
+                currentArr.append([curr, innerMap[1]-curr])
+                currentArr.append([innerMap[1]+innerMap[2], curr+currRange-innerMap[1]-innerMap[2]])
+                
                 
                 currRange = innerMap[2]
-                curr = innerMap[1]
+                curr = innerMap[0]
                 break
 
         currentArr[i][0] = curr
         currentArr[i][1] = currRange
-                
+        
         i+=1
-if curr<minFinalLoc or minFinalLoc==-1:
-    minFinalLoc = curr
+
+
+finalLocsMin = [d[0] for d in currentArr]
+
+print(min(finalLocsMin))
