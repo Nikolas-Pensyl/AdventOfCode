@@ -78,9 +78,7 @@ for j in range(len(content)):
                 Gears.append(int(content[j+1][startNum:curr]))
                 curr +=1
         
-            if j == 15: print(Gears, l[i])
         if NumOfNums == 2:
-            if j == 15: print(Gears, l[i])
             total += Gears[0]*Gears[1]
         
         i +=1
