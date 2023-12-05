@@ -59,7 +59,6 @@ for j in range(len(content)):
                 isAdj = True
         
         if(isAdj):
-            if j==33: print(Num)
             total += Num
 
         i +=1
