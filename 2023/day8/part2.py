@@ -66,6 +66,8 @@ for i in range(len(currLocs)):
 
 #Get the count where all the endings lineup
 #Probably could optimize this somehow
+#After Looking at the output of all ending locations turns out only one ending location per loop so we can just check the single ending location
+#Other wise we would need to check each location to see if was equal mod the length of its loop
 i = 0
 allEqual = False
 while not allEqual:
