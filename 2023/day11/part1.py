@@ -2,7 +2,6 @@ file = open("text.txt")
 content = file.readlines()
 content = [[content[i][j] for j in range(len(content[i])) if content[i][j] != '\n'] for i in range(len(content))]
 
-nodeNumber = 1
 i=0
 while i<len(content):
     isEmpty = True
@@ -29,16 +28,12 @@ while j<len(content[0]):
         j +=1
     j +=1
 
-nodeNumber = 1
+
 NodeLocs = []
 for i in range(len(content)):
     for j in range(len(content[i])):
         if content[i][j] == '#':
-            content[i][j] = nodeNumber
             NodeLocs.append([j, i])
-            nodeNumber +=1
-        else:
-            content[i][j] = 0
 
 
 total = 0
