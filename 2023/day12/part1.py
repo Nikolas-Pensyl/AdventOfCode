@@ -4,26 +4,10 @@ content = open('text.txt').read().strip().splitlines()
 content = [[line.split()[0], list(map(int, line.split()[1].split(',')))] for line in content]
 
 def verify(input, hash):
-    currHash = 0
-    hashIndex = 0
-    for i, char in enumerate(input):
-        if char == '#' and currHash ==0 and i!=0 and input[i-1] != '.':
-            return False
-        elif char == '#':
-            if len(hash) == hashIndex: 
-                return False
-            currHash +=1
-            if currHash == hash[hashIndex]:
-                if i+1!=len(input) and input[i+1] != '.':
-                    return False
-                else:
-                    currHash = 0
-                    hashIndex +=1
-
-        if char == '.' and hashIndex<len(hash) and currHash != hash[hashIndex] and currHash>0:
-            return False
-
-    return True if hashIndex == len(hash) else False
+    hashArr = [len(x) for x in input.split('.') if len(x)>0]
+    if len(hashArr) != len(hash):
+        return False
+    return all([hashArr[i] == hash[i] for i in range(len(hash))])
 
 
 def getCombos(input, hash):
