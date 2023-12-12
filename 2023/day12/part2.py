@@ -1,8 +1,8 @@
-import copy
+from collections import Counter
+import multiprocessing
 
 content = open('text.txt').read().strip().splitlines()
 content = [[line.split()[0], list(map(int, line.split()[1].split(',')))] for line in content]
-
 
 for i in range(len(content)):
     org = content[i][0]
@@ -10,33 +10,45 @@ for i in range(len(content)):
     for j in range(4):
         content[i][0] += '?'+org
         content[i][1] += orgNum
-    break
 
 
 def verify(input, hash):
+    hashArr = [len(x) for x in input.split('.') if len(x)>0]
+    if len(hashArr) != len(hash):
+        return False
+    return all([hashArr[i] == hash[i] for i in range(len(hash))])
+
+def verifyPartial(input, hash, index):
     currHash = 0
     hashIndex = 0
-    for i, char in enumerate(input):
-        if char == '#' and currHash ==0 and i!=0 and input[i-1] != '.':
+    hashSum = sum(hash)
+    count = Counter(input)
+
+    if count['#'] > hashSum or hashSum > count['#']+count['?']:
+        return False
+
+    for i in range(index+1):
+        if input[i] == '#' and currHash ==0 and i!=0 and input[i-1] != '.':
             return False
-        elif char == '#':
+
+        elif input[i] == '#':
             if len(hash) == hashIndex: 
                 return False
             currHash +=1
             if currHash == hash[hashIndex]:
-                if i+1!=len(input) and input[i+1] != '.':
+                if i+1!=len(input) and input[i+1] == '#':
                     return False
                 else:
                     currHash = 0
                     hashIndex +=1
 
-        if char == '.' and hashIndex<len(hash) and currHash != hash[hashIndex] and currHash>0:
+        elif input[i] == '.' and hashIndex<len(hash) and currHash>0:
             return False
 
-    return True if hashIndex == len(hash) else False
+    return True
 
 
-def getCombos(input, hash):
+def getCombos(input, hash, results, resIndex):
     lengthIn = len(input)
     arragements = []
     arragements.append(input)
@@ -47,9 +59,15 @@ def getCombos(input, hash):
             if arragements[j][i] == '?':
                 addEnding = i+1 if i+1 !=lengthIn else lengthIn
                 arragements[j] = arragements[j][:i] + '#' + arragements[j][addEnding:]
-                arragements.insert(0, arragements[j])
-                j +=1
+                if verifyPartial(arragements[j], hash, i):
+                    arragements.insert(0, arragements[j])
+                    j +=1
+
                 arragements[j] = arragements[j][:i] + '.' + arragements[j][addEnding:]
+                if not verifyPartial(arragements[j], hash, i):
+                    arragements.pop(j)
+                    j -=1
+                
             j +=1
     
         i +=1
@@ -58,13 +76,26 @@ def getCombos(input, hash):
     for i in arragements:
         if verify(i, hash):
             count += 1
-    
+    results[resIndex] = count
+    print(resIndex)
     return count
 
 
 total = 0
+results = [0 for i in range(len(content))]
+threads = [None for i in range(len(content))]
+'''
 for i, line in enumerate(content):
-    total += getCombos(line[0], line[1])
-    break
+    print(i)
+    total += getCombos(line[0], line[1], results, i)
+'''
 
-print(total)
+for i, line in enumerate(content):
+    threads[i] = multiprocessing.Process(target = getCombos, args=(line[0], line[1], results, i))
+    threads[i].start()
+
+
+for i in range(len(threads)):
+    threads[i].join()
+
+print(sum(results))
