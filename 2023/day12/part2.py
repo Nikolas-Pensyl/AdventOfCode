@@ -1,101 +1,73 @@
-from collections import Counter
-import multiprocessing
+import multiprocessing as mp
+import time
+
+#Initially thought I might have to brute force with multiprocessing
+#So after optimizing I decided to play around with multiprocessing vs single
+#Multiprocessing = 145 ms
+#Singleprocessing = 165 ms
+
+#I also learned a great deal about how lists are pass by reference in python and tuples are not
+#What a great adventure improving my python has been during this event
+
 
 content = open('text.txt').read().strip().splitlines()
-content = [[line.split()[0], list(map(int, line.split()[1].split(',')))] for line in content]
+content = [(line.split()[0], tuple(map(int, line.split()[1].split(',')))) for line in content]
 
 for i in range(len(content)):
     org = content[i][0]
-    orgNum = content[i][1].copy()
+    orgNum = content[i][1]*5
+    input = org
     for j in range(4):
-        content[i][0] += '?'+org
-        content[i][1] += orgNum
-
-
-def verify(input, hash):
-    hashArr = [len(x) for x in input.split('.') if len(x)>0]
-    if len(hashArr) != len(hash):
-        return False
-    return all([hashArr[i] == hash[i] for i in range(len(hash))])
-
-def verifyPartial(input, hash, index):
-    currHash = 0
-    hashIndex = 0
-    hashSum = sum(hash)
-    count = Counter(input)
-
-    if count['#'] > hashSum or hashSum > count['#']+count['?']:
-        return False
-
-    for i in range(index+1):
-        if input[i] == '#' and currHash ==0 and i!=0 and input[i-1] != '.':
-            return False
-
-        elif input[i] == '#':
-            if len(hash) == hashIndex: 
-                return False
-            currHash +=1
-            if currHash == hash[hashIndex]:
-                if i+1!=len(input) and input[i+1] == '#':
-                    return False
-                else:
-                    currHash = 0
-                    hashIndex +=1
-
-        elif input[i] == '.' and hashIndex<len(hash) and currHash>0:
-            return False
-
-    return True
-
-
-def getCombos(input, hash, results, resIndex):
-    lengthIn = len(input)
-    arragements = []
-    arragements.append(input)
-    i=0
-    while i<lengthIn:
-        j=0
-        while j<len(arragements):
-            if arragements[j][i] == '?':
-                addEnding = i+1 if i+1 !=lengthIn else lengthIn
-                arragements[j] = arragements[j][:i] + '#' + arragements[j][addEnding:]
-                if verifyPartial(arragements[j], hash, i):
-                    arragements.insert(0, arragements[j])
-                    j +=1
-
-                arragements[j] = arragements[j][:i] + '.' + arragements[j][addEnding:]
-                if not verifyPartial(arragements[j], hash, i):
-                    arragements.pop(j)
-                    j -=1
-                
-            j +=1
+        input += '?'+org
     
-        i +=1
+    content[i] = (input, orgNum)
+
+
+def getCombosWrapper(args):
+    return getCombos(*args)
+
+cache = {}
+def getCombos(input, hash):
+    if hash == ():
+        return 1 if '#' not in input else 0
     
+    if input == '':
+        return 1 if hash == () else 0
+    
+    key = (input, hash)
+    if key in cache:
+        return cache[key]
+
     count = 0
-    for i in arragements:
-        if verify(i, hash):
-            count += 1
-    results[resIndex] = count
-    print(resIndex)
+
+    if input[0] in '?.':
+        count += getCombos(input[1:], hash)
+
+    if input[0] in '?#':
+        if len(input) >= hash[0] and '.' not in input[0:hash[0]] and (hash[0] == len(input) or input[hash[0]] != '#'):
+            count += getCombos(input[hash[0] + 1:], hash[1:])
+
+    cache[key] = count
     return count
 
 
-total = 0
-results = [0 for i in range(len(content))]
-threads = [None for i in range(len(content))]
-'''
-for i, line in enumerate(content):
-    print(i)
-    total += getCombos(line[0], line[1], results, i)
-'''
+if __name__ ==  '__main__':
+    result = []
+    start = time.time()
+    with mp.Pool(processes=30) as pool:
+        result = pool.map(getCombosWrapper, content)
+    total = sum(result)
+    end = time.time()
+    print("Multiprocessing: ", (end-start)*10**3)
+    print("The total is:", total)
 
-for i, line in enumerate(content):
-    threads[i] = multiprocessing.Process(target = getCombos, args=(line[0], line[1], results, i))
-    threads[i].start()
+    total = 0
+    start = time.time()
+    for i in content:
+        total += getCombos(i[0], i[1])
+    end = time.time()
+    print("Single Process: ", (end-start)*10**3)
+    print("The total is:", total)
 
 
-for i in range(len(threads)):
-    threads[i].join()
-
-print(sum(results))
+    
