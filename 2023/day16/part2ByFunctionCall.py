@@ -53,28 +53,33 @@ def travel(y, x, dir):
 
 startingRoutes = []
 for i in range(len(content)):
-    startingRoutes.append([i, 0, 1])
-    startingRoutes.append([i, len(content[0])-1, 3])
+    startingRoutes.append((i, 0, 1))
+    startingRoutes.append((i, len(content[0])-1, 3))
 
 for i in range(len(content[0])):
-    startingRoutes.append([len(content)-1, i, 0])
-    startingRoutes.append([0, i, 2])
+    startingRoutes.append((len(content)-1, i, 0))
+    startingRoutes.append((0, i, 2))
 
-energized = [[[False for char in line] for line in content] for k in range(len(startingRoutes))]
-maxVal = 0
-count = 0
-while len(startingRoutes)>count:
-    routes.append(startingRoutes[count])
+def doRoute(route):
+    energized = [[False for char in line] for line in content]
+    routes.append(route)
     traversed = set({})
     while len(routes)>0:
         y, x, dir = routes.pop(0)
         while -1<x<len(content[0]) and -1<y<len(content) and (x, y, dir) not in traversed:
             traversed.add((x, y, dir))
-            energized[count][y][x] = True
+            energized[y][x] = True
             y, x, dir = travel(y, x, dir)
-        val = sum([sum([1 if x else 0 for x in y]) for y in energized[count]])
+    return sum([sum([1 if x else 0 for x in y]) for y in energized])
+
+
+if __name__ == '__main__':
+    maxVal = 0
+    count = 0
+    for route in startingRoutes:
+        val = doRoute(route)
         if maxVal<val:
             maxVal = val
-    count +=1
+        
 
-print(maxVal)
+    print(maxVal)
