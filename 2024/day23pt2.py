@@ -1,4 +1,4 @@
-conns = {tuple(line.split('-')) for line in open('./Inputs/day23t.txt').read().splitlines()}
+conns = [tuple(line.split('-')) for line in open('./Inputs/day23.txt').read().splitlines()]
 cdict: dict[str, list] = dict()
 comps = set()
 
