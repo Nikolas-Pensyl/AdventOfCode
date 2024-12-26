@@ -3,44 +3,85 @@ from itertools import combinations
 inp, gates = open('./Inputs/2024/day24.txt').read().split('\n\n')
 
 ops = dict()
-vals = dict()
-
-xs = 0
-ys = 0
-for i in inp.splitlines():
-    a, b = i.split(': ')
-    vals[a] = int(b)
-
-for i in range(45):
-    xs += vals['x'+ str(i) if i>=10 else 'x0' + str(i)]<<i
-    ys += vals['y'+ str(i) if i>=10 else 'y0' + str(i)]<<i
-
-goalSum = xs+ys
 
 for line in gates.splitlines():
     a, o, b, _, c = line.split()
 
     ops[c] = (a, b, o)
 
-def pp(wire, depth=0):
-    if wire[0] in 'xy': return ' '+str(vals[wire])
-    st = ""
-    a, b, o = ops[wire]
-    st += ' '*depth+f'{a} {o} {b} \n ' 
-    st += ' '*(depth+1) + f'{a} {pp(a, depth+1)}\n '
-    st += ' '*(depth+1) + f'{b} {pp(b, depth+1)}\n'
-    return st
+def getWire(char, num):
+    return char + str(num).rjust(2, "0")
 
-c = 0
-v = 0
-for i in range(45, -1, -1):
-    #v += vals['z'+ str(i) if i>=10 else 'z0' + str(i)]<<i
-    print('z'+ str(i)+'\n' if i>=10 else 'z0' + str(i)+'\n', pp('z'+ str(i) if i>=10 else 'z0' + str(i)))
-    exit()
+def verify_carry_bit(wire, num):
+    if wire[0] in 'xy': return False
+    x, y, o = ops[wire]
 
+    if num==1:
+        if o!='AND': return False
+        return sorted([x, y]) == ["x00", "y00"]
+    
+    if o!='OR': return False
+    return (verify_direct_carry(x, num-1) and verify_recarry(y, num-1)) or (verify_direct_carry(y, num-1) and verify_recarry(x, num-1))
+    
 
+def verify_inter_xor(wire, num):
+    if wire[0] in 'xy': return False
+    x, y, o = ops[wire]
 
-if v==goalSum:
-    print('Done')
+    if o!='XOR': return False
 
-print(v)
+    return sorted([x, y]) == [getWire('x', num), getWire('y', num)]
+
+def verify_direct_carry(wire, num):
+    if wire[0] in 'xy': return False
+    x, y, o = ops[wire]
+
+    if o!='AND': return False
+    return sorted([x, y]) == [getWire('x', num), getWire('y', num)]
+
+def verify_recarry(wire, num):
+    if wire[0] in 'xy': return False
+
+    x, y, o = ops[wire]
+
+    if o!='AND': return False
+    return (verify_inter_xor(x, num) and verify_carry_bit(y, num)) or (verify_inter_xor(y, num) and verify_carry_bit(x, num))
+
+def verify_z(num):
+    wire = getWire('z', num)
+    x, y, o = ops[wire]
+    if o!='XOR': return False
+    if num==0: return sorted([x, y]) == ['x00', 'y00']
+    
+    return (verify_inter_xor(x, num) and verify_carry_bit(y, num)) or (verify_inter_xor(y, num) and verify_carry_bit(x, num))
+
+def progress():
+    for i in range(46):
+        if not verify_z(i):
+            return i
+        
+    return 47
+
+swaps = []
+for _ in range(4):
+    baseline = progress()
+    for x in ops:
+        if x in swaps: continue
+
+        for y in ops:
+            if x == y: continue
+            if y in swaps: continue
+
+            ops[x], ops[y] = ops[y], ops[x]
+            if progress()>baseline:
+                swaps.append(x)
+                swaps.append(y)
+                break
+            ops[x], ops[y] = ops[y], ops[x]
+
+        else: 
+            continue
+    
+        break
+
+print(swaps)
